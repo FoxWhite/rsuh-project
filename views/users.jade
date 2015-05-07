@@ -1,0 +1,9 @@
+html
+	head
+		title Welcome
+	body
+		#container
+			- each user in users
+				p= user.Name
+				p= user.Surname
+				p= user.Location
