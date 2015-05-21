@@ -1,11 +1,14 @@
 var express     = require('express'),
-    crawler     = require('./crawler');
+    crawler     = require('./crawler'),
+    dbHandler   = require('./dbHandler');
 
 var app = express();
-var startUrl = 'http://belov.zz.mu/'; //'http://isdwiki.rsuh.ru/'; //
+var startUrl = 'http://rsuh.ru/'//'http://belov.zz.mu/'; //'http://isdwiki.rsuh.ru/'; //
+var db = new dbHandler('rsuh-project');
 
 app.get('/', function(req, res){
     //---main
+    db.connect();
     crawler.mainLoop(startUrl);
 
 

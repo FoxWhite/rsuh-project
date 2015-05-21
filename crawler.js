@@ -12,10 +12,11 @@ function mainLoop(url){
     console.log('======');
     // console.log(queue, 'q');
     // console.log(parsed, 'p');
-    console.log(parsed.length +' pages parsed, ' + queue.length + ' more to go');
+    console.log(parsed.length +' pages parsed, ~' + queue.length + ' more to go');
 
     request(url, function(error, response, html){
-        console.log('got page '+ url);
+        console.log('page received: '+ url +' \n('+ response.headers['content-type']+')');
+        console.log();
         if(!error && response.statusCode === 200){ // main iteration magic here
             var $ = cheerio.load(html),
                 title = $("title").text(), 
@@ -50,8 +51,8 @@ function mainLoop(url){
                     // TODO все равно добавить связь в граф
                 }
             }
-            console.log('parsed: '+ this.href);
-            if (this.href != url) { // happens when linked page is redirected
+
+            if (this.href != url && this.href != (url + '/')) { // happens when linked page is redirected
                 console.log('page redirects to ' + this.href);
                 if (!isExternal(this.href) && urlConditions(this.href)) {queue.push(this.href); }
             }
@@ -92,12 +93,10 @@ var isExternal = function(url) {
 };
 //----------------------------------==
 var urlConditions = function(url){
-    if (/#/.test(url)){
+    if ((/#/.test(url)) || (/\.(jpg|png|ico|gif|svg|pdf|doc|docx|zip|rar)$/i.test(url))){
         return false;
     }
-    else{
-        return true;
-    }
+    return true;
 }
 
 
