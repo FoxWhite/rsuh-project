@@ -1,49 +1,105 @@
-var express = require('express'),
-	mysql   = require('mysql'),
-	path    = require('path');
+var express   = require('express'),
+    request   = require('request'),
+    cheerio   = require('cheerio'),
+    async     = require('async'),
+    urlModule = require('url');
 
-var app = express();
+var app       = express();
+// app.get('/', function(req, res){
+//     //---main
+// })
 
-var connection = mysql.createConnection({
-	host     : 'localhost',
-	user     : 'root',
-	password : 'password',
-	database : 'rsuh-project'
-});
+// app.set('view engine', 'jade');
+// app.set('port', 3000);
 
-connection.connect(function(err){
-	if(!err) {
-	    console.log("Database is connected ... \n\n");  
-	} 
-	else {
-	    console.log("Error connecting database ... \n\n");  
-	}
-});
+// var server = app.listen(3000, function() {
+//     console.log('listening on port 3000');
+// })
 
 
-app.set('view engine', 'jade');
-app.set('port', 3000);
+var startUrl = 'http://belov.zz.mu'; //'http://isdwiki.rsuh.ru'; 
+var queue = [],
+    parsed = [];
 
+function mainLoop(url){
+    //updating queue
+    queue = queue.filter( function( el ) {
+      return parsed.indexOf( el ) < 0;
+    });
+    console.log('======')
+    console.log(queue, 'queue');
+    
+    request(url, function(error, response, html){
+        console.log('got page '+ url);
+        if(!error && response.statusCode == 200){ // main iteration magic here
+            var $ = cheerio.load(html),
+                title = $("title").text(), 
+                hrefs = [],
+                hrefsWithCounts = {};
 
-app.get('/', function(request, response){
-	connection.query('SELECT * FROM refs', function(err, rows, fields){
-		if (!err) {
-			console.log(rows, 'rows');
-			response.render('users', {users : rows});
-		}
-		else 
-			console.log('err:' + err.message);
+            //scanning for links    
+            $('a').each(function(i, elem){
+                var href = $(this).attr('href') || '';
+                var label = $(this).text();
 
-		connection.end();
-	})
-});
+                if (href.length > 0) {
+                    if (!isExternal(href) && urlConditions(href))
+                        hrefs.push(urlModule.resolve(startUrl,href));
+                }
+            });
 
+            // managing duplicates. return hrefsWithCounts as json like{'url': duplicatesNum}
+            for (var i = 0, len = hrefs.length; i < len; i++){
+                var val = hrefs[i];
+                (!hrefsWithCounts.hasOwnProperty(val)) ? hrefsWithCounts[val] = 1 : hrefsWithCounts[val] += 1;
+            }
 
+            // adding to queue
+            for (var i in hrefsWithCounts){
+                if ((parsed.indexOf(i) < 0) && (queue.indexOf(i) < 0)) {
+                    
+                    queue.push(i);
+                    // TODO добавить связь в граф
+                }
+                else {
+                    // TODO все равно добавить связь в граф
+                }
+            }
+            console.log('parsed: '+ this.href);
+            parsed.push(this.href);
+            
+            
+            //processing queue
+            if (queue[0]) {
+                mainLoop(queue[0]);   
+            }     
+        }
+        else if (response.statusCode != 200) {
+            console.log('=========ERROR LOADING PAGE. CODE' + response.statusCode);
+            parsed.push(this.href);
+            mainLoop(queue[0]);  
+        }
+        else{
+            console.log(error.message);
+        }
+    })
+};
+mainLoop(startUrl);
 
-app.get('*', function(request, response){
-	response.send('Bad route');
-});
-
-var server = app.listen(3000, function() {
-	console.log('listening on port 3000');
-})
+//-------------external link checking
+var checkDomain = function(url) {
+  if ( url.indexOf('//') === 0 ) { url = location.protocol + url; }
+  return url.toLowerCase().replace(/([a-z])?:\/\//,'$1').split('/')[0];
+};
+var isExternal = function(url) {
+  return ( ( url.indexOf(':') > -1 || url.indexOf('//') > -1 ) && checkDomain(startUrl) !== checkDomain(url) );
+};
+//----------------------------------==
+var urlConditions = function(url){
+    if (/#/.test(url)){
+        return false;
+    }
+    else{
+        return true;
+    }
+}
