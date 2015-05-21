@@ -17,18 +17,17 @@ var app       = express();
 // })
 
 
-var startUrl = 'http://belov.zz.mu'; //'http://isdwiki.rsuh.ru'; 
+var startUrl = 'http://belov.zz.mu/'; //'http://isdwiki.rsuh.ru/'; //
 var queue = [],
     parsed = [];
 
 function mainLoop(url){
-    //updating queue
-    queue = queue.filter( function( el ) {
-      return parsed.indexOf( el ) < 0;
-    });
-    console.log('======')
-    console.log(queue, 'queue');
-    
+
+    console.log('======');
+    console.log(queue, 'q');
+    console.log(parsed, 'p');
+    console.log(parsed.length +' pages parsed, ' + queue.length + ' more to go');
+
     request(url, function(error, response, html){
         console.log('got page '+ url);
         if(!error && response.statusCode == 200){ // main iteration magic here
@@ -37,7 +36,7 @@ function mainLoop(url){
                 hrefs = [],
                 hrefsWithCounts = {};
 
-            //scanning for links    
+            //scanning for links, adding to local hrefs[]    
             $('a').each(function(i, elem){
                 var href = $(this).attr('href') || '';
                 var label = $(this).text();
@@ -66,9 +65,18 @@ function mainLoop(url){
                 }
             }
             console.log('parsed: '+ this.href);
-            parsed.push(this.href);
-            
-            
+            if (this.href != url) { // happens when linked page is redirected
+                console.log('page redirects to ' + this.href);
+                if (!isExternal(this.href) && urlConditions(this.href)) {queue.push(this.href); }
+                parsed.push(url);
+            }
+            else{
+                parsed.push(url);
+            }
+            //updating queue
+            queue = queue.filter( function( el ) {
+                return parsed.indexOf( el ) < 0;
+            });
             //processing queue
             if (queue[0]) {
                 mainLoop(queue[0]);   
