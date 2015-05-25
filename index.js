@@ -3,13 +3,13 @@ var express     = require('express'),
     dbHandler   = require('./dbHandler');
 
 var app = express();
-var startUrl = 'http://rsuh.ru/' ;//'http://belov.zz.mu/'; //'http://isdwiki.rsuh.ru/'; //
+var startUrl = 'http://belov.zz.mu/'; //'http://isdwiki.rsuh.ru/'; // 'http://rsuh.ru/' ;//
 var db = new dbHandler('rsuh-project');
 
 app.get('/', function(req, res){
     //---main
     db.connect();
-    crawler.mainLoop(startUrl);
+    crawler.mainLoop(startUrl, db);
 
 
 });

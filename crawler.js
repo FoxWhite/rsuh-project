@@ -2,22 +2,23 @@ var request   = require('request'),
     cheerio   = require('cheerio'),
     urlModule = require('url');
 
-
+var db = "";
 
 var startUrl = ""; //'http://belov.zz.mu/'; //'http://isdwiki.rsuh.ru/'; //
 var queue = [],
     parsed = [];
 
 function mainLoop(url){
+    
+
     console.log('======');
     // console.log(queue, 'q');
     // console.log(parsed, 'p');
     console.log(parsed.length +' pages parsed, ~' + queue.length + ' more to go');
 
     request(url, function(error, response, html){
-        console.log('page received: '+ url +' \n('+ response.headers['content-type']+')');
-        console.log();
         if(!error && response.statusCode === 200){ // main iteration magic here
+            console.log('page received: '+ url +' \n('+ response.headers['content-type']+')');
             var $ = cheerio.load(html),
                 title = $("title").text(), 
                 hrefs = [],
@@ -45,6 +46,7 @@ function mainLoop(url){
                 if ((parsed.indexOf(i) < 0) && (queue.indexOf(i) < 0)) {
                     
                     queue.push(i);
+                    db.addRef(i); //add all current page links to 'refs'
                     // TODO добавить связь в граф
                 }
                 else {
@@ -57,7 +59,7 @@ function mainLoop(url){
                 if (!isExternal(this.href) && urlConditions(this.href)) {queue.push(this.href); }
             }
             parsed.push(url);
-            
+            db.addPageInfo(url, title);
             //updating queue
             queueUpdate();
             //processing queue
@@ -69,7 +71,7 @@ function mainLoop(url){
             }     
         }
         else if(error){
-            console.log(error.message);
+            throw error;
         }
         else if (response.statusCode != 200) {
             console.log('=========ERROR LOADING PAGE. CODE' + response.statusCode);
@@ -104,7 +106,9 @@ var urlConditions = function(url){
 };
 
 
-module.exports.mainLoop = function(url) {
+module.exports.mainLoop = function(url, dbHandler) {
     startUrl = url;
+    db = dbHandler;
+    db.addRef(startUrl);
     return mainLoop(url);
 };
