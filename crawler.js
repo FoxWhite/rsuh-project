@@ -31,35 +31,43 @@ function mainLoop(url){
 
                 if (href.length > 0) {
                     if (!isExternal(href) && urlConditions(href))
-                        hrefs.push(urlModule.resolve(startUrl,href));
+                        hrefs.push([urlModule.resolve(startUrl,href), label]);
                 }
             });
-
+            console.log(hrefsWithCounts,'hrefswc');
             // managing duplicates. return hrefsWithCounts as json like{'url': duplicatesNum}
             for (var i = 0, len = hrefs.length; i < len; i++){
-                var val = hrefs[i];
-                (!hrefsWithCounts.hasOwnProperty(val)) ? hrefsWithCounts[val] = 1 : hrefsWithCounts[val] += 1;
-            }
+                var hrf = hrefs[i][0],
+                    hrf_label = hrefs[i][1];
 
+                if (!hrefsWithCounts.hasOwnProperty(hrf)) { 
+                    hrefsWithCounts[hrf] = {}; 
+                    hrefsWithCounts[hrf][hrf_label] = 1 
+                }
+                else if (!hrefsWithCounts[hrf].hasOwnProperty(hrf_label)){ 
+                    hrefsWithCounts[hrf][hrf_label] = 1;
+                }
+                else {
+                    hrefsWithCounts[hrf][hrf_label] += 1;
+                }
+            }
+            console.log(hrefsWithCounts,'hrefswc');
             // adding to queue
             for (var i in hrefsWithCounts){
                 if ((parsed.indexOf(i) < 0) && (queue.indexOf(i) < 0)) {
-                    
                     queue.push(i);
                     db.addRef(i); //add all current page links to 'refs'
-                    // TODO добавить связь в граф
-                }
-                else {
-                    // TODO все равно добавить связь в граф
                 }
             }
+
 
             if (this.href != url && this.href != (url + '/')) { // happens when linked page is redirected. Url = link, this.href = actual address
                 console.log('page redirects to ' + this.href);
                 if (!isExternal(this.href) && urlConditions(this.href)) {queue.push(this.href); }
             }
             parsed.push(url);
-            db.addPageInfo(url, title);
+
+            // db.addPageInfo(url, hrefs);
             //updating queue
             queueUpdate();
             //processing queue
@@ -109,6 +117,7 @@ var urlConditions = function(url){
 module.exports.mainLoop = function(url, dbHandler) {
     startUrl = url;
     db = dbHandler;
+    // db.init(); // temp! used with empty db
     db.addRef(startUrl);
     return mainLoop(url);
 };

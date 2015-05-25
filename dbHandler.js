@@ -23,6 +23,11 @@ var DBHandler = function(db){
          }
         });    
     };
+    this.init = function(){
+        this.connection.query('INSERT INTO reftypes SET ?', {RefTypeID : 1, RefType: 'text/html'}, function(err, result) {
+          if (err) throw err;
+        });      
+    };
 
     this.addRef = function (url, type) {
         var toInsert = {RefURL: url, Parsed: 0, RefError: 0, RefTypeID: type||1};
@@ -31,20 +36,42 @@ var DBHandler = function(db){
         });
     };
 
-    this.addPageInfo = function(url, title) {
+    this.addPageInfo = function(url, hrefs) {
         //withdrawing refId by page url:
         var refId = self.connection.query('SELECT RefID FROM refs WHERE RefURL = ?', url, function(err, result){
             if (err) throw err;
 
             refId = result[0].RefID;
-
+            console.log(refId, 'refId');
             //adding page title to reftitle
-            self.connection.query("INSERT INTO reftitle SET ?", {'RefTitleID': refId, 'Title' :title}, function(err, result) {
+            self.connection.query("INSERT INTO reftitle SET ? ON DUPLICATE KEY UPDATE ?", [{'RefTitleID': refId, 'Title' :title}, {'Title' :title}], function(err, result) {
                 if (err) throw err;
             });
+            //adding links
+            self.addLinks(refId, hrefs);
 
         });
     };
 
+    this.addLinks = function(refId, hrefs){
+        this.connection.query('INSERT INTO refgraph SET ?', {RefLinkedByID : refId, RefLinksToID: }, function(err, result) {
+          if (err) throw err;
+        });            
+    }
+    // this.deleteAll = function(){
+    //     this.connection.query("DROP DATABASE `rsuh-project`", function(err, result) {
+    //             if (err) throw err;
+    //             console.log('database dropped');
+    //     });
+    //     this.connection.query("CREATE DATABASE `rsuh-project`", function(err, result) {
+    //             if (err) throw err;
+    //             console.log('database re-created');
 
+    //     });
+    //     this.connection.query('INSERT INTO reftypes SET ?', {RefTypeID : 1, RefType: 'text/html'}, function(err, result) {
+    //       if (err) throw err;
+    //     });
+    // }
+
+}
 module.exports = DBHandler;
