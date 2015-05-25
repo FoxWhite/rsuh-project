@@ -52,22 +52,20 @@ function mainLoop(url){
                 }
             }
 
-            if (this.href != url && this.href != (url + '/')) { // happens when linked page is redirected
+            if (this.href != url && this.href != (url + '/')) { // happens when linked page is redirected. Url = link, this.href = actual address
                 console.log('page redirects to ' + this.href);
                 if (!isExternal(this.href) && urlConditions(this.href)) {queue.push(this.href); }
             }
             parsed.push(url);
             
             //updating queue
-            queue = queue.filter( function( el ) {
-                return parsed.indexOf( el ) < 0;
-            });
+            queueUpdate();
             //processing queue
             if (queue[0]) {
                 mainLoop(queue[0]);   
             }
             else {
-                console.log('finished.')
+                console.log('finished.');
             }     
         }
         else if(error){
@@ -75,17 +73,23 @@ function mainLoop(url){
         }
         else if (response.statusCode != 200) {
             console.log('=========ERROR LOADING PAGE. CODE' + response.statusCode);
-            parsed.push(this.href);
+            parsed.push(url);
+            queueUpdate();
             mainLoop(queue[0]);  
         }
 
-    })
-};
+    });
 
+    function queueUpdate(){
+        queue = queue.filter( function( el ) {
+            return parsed.indexOf( el ) < 0;
+        });          
+    }
+}
 
 //-------------external link checking
 var checkDomain = function(url) {
-  if ( url.indexOf('//') === 0 ) { url = location.protocol + url; }
+  if ( url.indexOf('//') === 0 ) { url = 'http:' + url; }
   return url.toLowerCase().replace(/([a-z])?:\/\//,'$1').split('/')[0];
 };
 var isExternal = function(url) {
@@ -97,7 +101,7 @@ var urlConditions = function(url){
         return false;
     }
     return true;
-}
+};
 
 
 module.exports.mainLoop = function(url) {

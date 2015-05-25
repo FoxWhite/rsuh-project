@@ -20,20 +20,8 @@ var DBHandler = function(){
              console.log("Error connecting database ... \n\n");  
          }
         });    
-    }
+    };
 
-
-    // connection.query('SELECT * FROM refs', function(err, rows, fields){
-    //      if (!err) {
-    //          console.log(rows, 'rows');
-    //          response.render('users', {users : rows});
-    //      }
-    //      else 
-    //          console.log('err:' + err.message);
-
-    //      connection.end();
-    //  })
-    // });
-}
+};
 
 module.exports = DBHandler;
