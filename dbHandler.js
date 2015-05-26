@@ -36,13 +36,12 @@ var DBHandler = function(db){
         });
     };
 
-    this.addPageInfo = function(url, hrefs) {
+    this.addPageInfo = function(url, hrefs, title) {
         //withdrawing refId by page url:
         var refId = self.connection.query('SELECT RefID FROM refs WHERE RefURL = ?', url, function(err, result){
             if (err) throw err;
 
             refId = result[0].RefID;
-            console.log(refId, 'refId');
             //adding page title to reftitle
             self.connection.query("INSERT INTO reftitle SET ? ON DUPLICATE KEY UPDATE ?", [{'RefTitleID': refId, 'Title' :title}, {'Title' :title}], function(err, result) {
                 if (err) throw err;
@@ -54,10 +53,41 @@ var DBHandler = function(db){
     };
 
     this.addLinks = function(refId, hrefs){
-        this.connection.query('INSERT INTO refgraph SET ?', {RefLinkedByID : refId, RefLinksToID: }, function(err, result) {
-          if (err) throw err;
-        });            
-    }
+        for(var i in hrefs){
+            getIdByUrl(i);
+        }
+
+        function getIdByUrl(i){
+            self.connection.query('SELECT RefID FROM refs WHERE RefURL = ?', i, function(err, result){
+                if (err) throw err;
+                refgraphInsert(result[0].RefID, i );
+            });   
+        }
+
+        function refgraphInsert(idTo, i){
+            self.connection.query('INSERT INTO refgraph SET ?', {'RefLinkedByID' : refId, 'RefLinksToID': idTo}, function(err, result) {
+                if (err) throw err;
+
+                var refGrId = result.insertId;
+                
+                for (var j in hrefs[i]){
+                     manageLabels(i, j, refGrId);                 
+                }
+            });      
+        }
+        
+        function manageLabels(i, j, refGrId){
+            self.connection.query('INSERT INTO labels SET ?', {'Label' : j}, function(err, result) {
+                if (err) throw err;
+
+                var labelId = result.insertId;
+
+                self.connection.query('INSERT INTO refgrlabels SET ?', {'RefGrID' : refGrId, 'LabelID': labelId, 'Count' : hrefs[i][j]}, function(err, result) {
+                    if (err) throw err;
+                });                         
+            });              
+        }
+    };
     // this.deleteAll = function(){
     //     this.connection.query("DROP DATABASE `rsuh-project`", function(err, result) {
     //             if (err) throw err;

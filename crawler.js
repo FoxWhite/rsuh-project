@@ -34,7 +34,7 @@ function mainLoop(url){
                         hrefs.push([urlModule.resolve(startUrl,href), label]);
                 }
             });
-            console.log(hrefsWithCounts,'hrefswc');
+
             // managing duplicates. return hrefsWithCounts as json like{'url': duplicatesNum}
             for (var i = 0, len = hrefs.length; i < len; i++){
                 var hrf = hrefs[i][0],
@@ -42,7 +42,7 @@ function mainLoop(url){
 
                 if (!hrefsWithCounts.hasOwnProperty(hrf)) { 
                     hrefsWithCounts[hrf] = {}; 
-                    hrefsWithCounts[hrf][hrf_label] = 1 
+                    hrefsWithCounts[hrf][hrf_label] = 1 ;
                 }
                 else if (!hrefsWithCounts[hrf].hasOwnProperty(hrf_label)){ 
                     hrefsWithCounts[hrf][hrf_label] = 1;
@@ -51,7 +51,7 @@ function mainLoop(url){
                     hrefsWithCounts[hrf][hrf_label] += 1;
                 }
             }
-            console.log(hrefsWithCounts,'hrefswc');
+            console.log(hrefsWithCounts);
             // adding to queue
             for (var i in hrefsWithCounts){
                 if ((parsed.indexOf(i) < 0) && (queue.indexOf(i) < 0)) {
@@ -66,8 +66,7 @@ function mainLoop(url){
                 if (!isExternal(this.href) && urlConditions(this.href)) {queue.push(this.href); }
             }
             parsed.push(url);
-
-            // db.addPageInfo(url, hrefs);
+            db.addPageInfo(url, hrefsWithCounts, title);
             //updating queue
             queueUpdate();
             //processing queue
@@ -117,7 +116,7 @@ var urlConditions = function(url){
 module.exports.mainLoop = function(url, dbHandler) {
     startUrl = url;
     db = dbHandler;
-    // db.init(); // temp! used with empty db
+    //db.init(); // temp! used with empty db
     db.addRef(startUrl);
     return mainLoop(url);
 };
