@@ -1,5 +1,38 @@
 html
-	head
-		title #{title}
-	body
-		p  Lorem ipsum dolor sit amet, consectetur adipisicing elit. Deserunt aperiam culpa, laudantium ab quaerat, eveniet itaque adipisci optio cumque unde eum sunt dolor at voluptatem corporis aliquam, laborum tenetur suscipit.
+    head
+        title #{title}
+        link(rel='stylesheet', href='stylesheets/style.css')
+        link(rel='stylesheet', href='stylesheets/vis.css')
+        script(type='text/javascript' src='javascripts/jquery-2.1.4.js')
+        script(type='text/javascript' src='javascripts/vis.js')
+    body
+        .content
+            .buttons
+                .parseButton
+                    .label Parse
+                .graphButton
+                    .label Graph
+            #results
+        script.
+            $( document ).ready(function() {
+                $('.parseButton').on('click', function(){
+                        $.get('/parsing', function(data){
+                                $('#results').html(data);
+
+                        });
+                });
+                $('.graphButton').on('click', function(){
+                        $.get('/graph', function(data){
+                            var nodes = new vis.DataSet(data[0]),
+                                edges = new vis.DataSet(data[1]),
+                                container = document.getElementById('results');
+                                graphData = {
+                                    nodes: nodes,
+                                    edges: edges
+                                },
+                                options = {};
+                            var network = new vis.Network(container, graphData, options);                       
+                        });
+                });
+
+            });

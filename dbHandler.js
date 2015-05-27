@@ -1,11 +1,17 @@
-var mysql   = require('mysql'),
-    path    = require('path');
+var mysql    = require('mysql'),
+    path     = require('path'),
+    EventEmitter = require("events").EventEmitter,
+    util         = require("util");
+
 
 var DBHandler = function(db){
+    EventEmitter.call(this);
+    util.inherits(DBHandler, EventEmitter);
+
     var self = this;
     self.connection = false;
     this.dbToConnect = db;
-
+   
     this.connect = function(){
         this.connection = mysql.createConnection({
          host     : 'localhost',
@@ -16,12 +22,14 @@ var DBHandler = function(db){
     
         this.connection.connect(function(err){
          if(!err) {
-             console.log("Database is connected ... \n\n");  
+             console.log("Database is connected ... \n\n"); 
+             // this.emit('dbConnected');
          } 
          else {
-             console.log("Error connecting database ... \n\n");  
+             console.log("Error connecting database ... \n\n");
+             // this.emit('dbConError'); 
          }
-        });    
+        });  
     };
     this.init = function(){
         this.connection.query('INSERT INTO reftypes SET ?', {RefTypeID : 1, RefType: 'text/html'}, function(err, result) {
@@ -87,6 +95,27 @@ var DBHandler = function(db){
                 });                         
             });              
         }
+    };
+
+    this.visData = function(cb){
+        var nodes = [],
+            edges = [];
+        self.connection.query('SELECT RefID, RefURL FROM refs', function(err, result) {
+                if (err) throw err;
+
+                for (var i = 0, len = result.length, node = {}; i < len; i++){
+                    node = {id: result[i].RefID, label: result[i].RefURL};
+                    nodes.push(node);
+                }
+                self.connection.query('SELECT RefLinkedByID, RefLinksToID FROM refgraph', function(err, result) {
+                    if (err) throw err;
+                    for (var i = 0, len = result.length, edge = {}; i < len; i++){
+                        edge = {from: result[i].RefLinkedByID, to: result[i].RefLinksToID};
+                        edges.push(edge);
+                    }
+                    cb(err,[nodes, edges]);
+                });
+        });  
     };
     // this.deleteAll = function(){
     //     this.connection.query("DROP DATABASE `rsuh-project`", function(err, result) {

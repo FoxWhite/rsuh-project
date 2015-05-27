@@ -51,7 +51,6 @@ function mainLoop(url){
                     hrefsWithCounts[hrf][hrf_label] += 1;
                 }
             }
-            console.log(hrefsWithCounts);
             // adding to queue
             for (var i in hrefsWithCounts){
                 if ((parsed.indexOf(i) < 0) && (queue.indexOf(i) < 0)) {
@@ -75,6 +74,9 @@ function mainLoop(url){
             }
             else {
                 console.log('finished.');
+                // db.connection.end();
+                // console.log(db.visData());
+                return;
             }     
         }
         else if(error){
@@ -84,7 +86,7 @@ function mainLoop(url){
             console.log('=========ERROR LOADING PAGE. CODE' + response.statusCode);
             parsed.push(url);
             queueUpdate();
-            mainLoop(queue[0]);  
+            mainLoop(queue[0]); 
         }
 
     });
@@ -116,7 +118,7 @@ var urlConditions = function(url){
 module.exports.mainLoop = function(url, dbHandler) {
     startUrl = url;
     db = dbHandler;
-    //db.init(); // temp! used with empty db
+    // db.init(); // temp! used with empty db
     db.addRef(startUrl);
     return mainLoop(url);
 };

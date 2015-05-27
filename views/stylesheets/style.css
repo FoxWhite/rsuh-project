@@ -1,0 +1,27 @@
+body {
+    font-family: "Consolas", sans-serif;
+}
+.content {
+    width: 100%;
+    text-align: center;
+}
+.parseButton, .graphButton {
+        margin: 10px;
+        width: 200px;
+        height: 100px;
+        border: 1px solid;
+        display: inline-block;
+        cursor: pointer;
+        position: relative;
+        border-radius: 10px
+}   
+.parsebutton .label, .graphButton .label {
+    margin-top: 35px;
+    font-size: 24px;
+}
+#results {
+    margin: 20px auto;
+    width: 600px;
+    height: 400px;
+    border: 1px solid lightgray;
+}
