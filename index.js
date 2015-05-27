@@ -4,7 +4,7 @@ var express        = require('express'),
     dbHandler   = require('./dbHandler');
 
 var app = express();
-var startUrl = 'http://belov.zz.mu/'; //'http://isdwiki.rsuh.ru/'; // 'http://rsuh.ru/' ;//
+var startUrl = 'http://belov.zz.mu/'; // //'http://srsuh.ru/' ;//'http://isdwiki.rsuh.ru/'; // 
 var db = new dbHandler('rsuh-project');
 
 app.use(express.static('views'));
