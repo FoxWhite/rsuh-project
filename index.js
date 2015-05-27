@@ -4,7 +4,7 @@ var express        = require('express'),
     dbHandler   = require('./dbHandler');
 
 var app = express();
-var startUrl = 'http://belov.zz.mu/'; // //'http://srsuh.ru/' ;//'http://isdwiki.rsuh.ru/'; // 
+var startUrl = 'http://sport.rggu.ru/' ;//'http://belov.zz.mu/'; // //'http://isdwiki.rsuh.ru/'; // 
 var db = new dbHandler('rsuh-project');
 
 app.use(express.static('views'));
@@ -28,12 +28,13 @@ app.get('/parsing', function(req, res){
     
 });
 app.get('/graph', function(req, res){
-    
+    // db.connect();
     db.visData(function(visErr, visResult){
         if (visErr) throw visErr;
         res.send(visResult);
 
     });
+    // db.connection.close();
 });
 
 app.set('view engine', 'jade');

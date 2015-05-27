@@ -6,7 +6,8 @@ var db = "";
 
 var startUrl = ""; //'http://belov.zz.mu/'; //'http://isdwiki.rsuh.ru/'; //
 var queue = [],
-    parsed = [];
+    parsed = [],
+    maxPages = 7000;
 
 function mainLoop(url){
     
@@ -17,7 +18,7 @@ function mainLoop(url){
     console.log(parsed.length +' pages parsed, ~' + queue.length + ' more to go');
 
     request(url, function(error, response, html){
-        if(!error && response.statusCode === 200){ // main iteration magic here
+        if(!error && response.statusCode === 200 && maxPages > 0){ // main iteration magic here
             console.log('page received: '+ url +' \n('+ response.headers['content-type']+')');
             var $ = cheerio.load(html),
                 title = $("title").text(), 
@@ -70,6 +71,7 @@ function mainLoop(url){
             queueUpdate();
             //processing queue
             if (queue[0]) {
+                maxPages -= 1;
                 mainLoop(queue[0]);   
             }
             else {
@@ -86,6 +88,7 @@ function mainLoop(url){
             console.log('=========ERROR LOADING PAGE. CODE' + response.statusCode);
             parsed.push(url);
             queueUpdate();
+            maxPages -= 1;
             mainLoop(queue[0]); 
         }
 
