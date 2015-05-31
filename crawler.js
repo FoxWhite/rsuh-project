@@ -25,6 +25,17 @@ function mainLoop(url){
                 hrefs = [],
                 hrefsWithCounts = {};
 
+            if (this.href != url && this.href != (url + '/')) { // happens when linked page is redirected. Url = link, this.href = actual address
+                console.log('page redirects to ' + this.href);
+                parsed.push(url);
+                if (isExternal(this.href) || !urlConditions(this.href)){
+                    queueUpdate();
+                    maxPages -= 1;
+                    mainLoop(queue[0]); 
+                    return;
+                }
+            }
+            
             //scanning for links, adding to local hrefs[]    
             $('a').each(function(i, elem){
                 var href = $(this).attr('href') || '';
@@ -61,12 +72,10 @@ function mainLoop(url){
             }
 
 
-            if (this.href != url && this.href != (url + '/')) { // happens when linked page is redirected. Url = link, this.href = actual address
-                console.log('page redirects to ' + this.href);
-                if (!isExternal(this.href) && urlConditions(this.href)) {queue.push(this.href); }
-            }
-            parsed.push(url);
-            db.addPageInfo(url, hrefsWithCounts, title);
+            parsed.push(this.href);            
+        
+            console.log('just parsed: ', this.href);
+            db.addPageInfo(this.href, hrefsWithCounts, title);
             //updating queue
             queueUpdate();
             //processing queue

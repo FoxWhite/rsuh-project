@@ -28,7 +28,7 @@ app.get('/parsing', function(req, res){
     
 });
 app.get('/graph', function(req, res){
-    // db.connect();
+    db.connect();
     db.visData(function(visErr, visResult){
         if (visErr) throw visErr;
         res.send(visResult);

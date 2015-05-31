@@ -48,7 +48,7 @@ var DBHandler = function(db){
         //withdrawing refId by page url:
         var refId = self.connection.query('SELECT RefID FROM refs WHERE RefURL = ?', url, function(err, result){
             if (err) throw err;
-
+            console.log(result, url, 'result, url');
             refId = result[0].RefID;
             //adding page title to reftitle
             self.connection.query("INSERT INTO reftitle SET ? ON DUPLICATE KEY UPDATE ?", [{'RefTitleID': refId, 'Title' :title}, {'Title' :title}], function(err, result) {
