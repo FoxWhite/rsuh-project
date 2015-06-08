@@ -67,15 +67,17 @@ function mainLoop(url){
             for (var i in hrefsWithCounts){
                 if ((parsed.indexOf(i) < 0) && (queue.indexOf(i) < 0)) {
                     queue.push(i);
-                    db.addRef(i); //add all current page links to 'refs'
+                    // db.addRef(i); //add all current page links to 'refs'
                 }
+                
+
             }
 
 
             parsed.push(this.href);            
         
             console.log('just parsed: ', this.href);
-            db.addPageInfo(this.href, hrefsWithCounts, title);
+            db.handleRefsInfo(this.href, hrefsWithCounts, title, parsed);
             //updating queue
             queueUpdate();
             //processing queue
@@ -85,7 +87,7 @@ function mainLoop(url){
             }
             else {
                 console.log('finished.');
-                // db.connection.end();
+                // db.addQueuedPageInfo();
                 // console.log(db.visData());
                 return;
             }     
