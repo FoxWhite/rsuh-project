@@ -1,7 +1,9 @@
-function graphDrawer(data){
+function graphDrawer(data, startNodeUrl){
     var nodes = data[0],
-        edges = data[1],
-        startNodeUrl = 'http://sport.rggu.ru/';
+        edges = data[1];
+    for (var i = edges.length - 1; i >= 0; i--) {
+            console.log('from:',edges[i].from, 'to:', edges[i].to);
+    };
         
     var graph = Viva.Graph.graph(),
         initialNode = nodes.filter(function(n){return n.label == startNodeUrl})[0];
@@ -16,15 +18,25 @@ function graphDrawer(data){
     var graphics = Viva.Graph.View.svgGraphics(),
         nodeSize = 24,
         drawChunk = function(topNode){
-            graph.addNode(topNode.id, topNode.label);
+            (graph.getNode(topNode.id) == undefined) ? graph.addNode(topNode.id, topNode.label) : console.log(topNode,' already exists;');
 
             for (var i = 0,len = edges.length; i< len; i++){
                 if (edges[i].from === topNode.id && edges[i].to !== topNode.id){
-                    var nodeToAdd = nodes.filter(function(n){return n.id == edges[i].to;})[0];
-                    console.log(nodeToAdd.id);
-                    graph.addNode(nodeToAdd.id, nodeToAdd.label);
-                    graph.forEachNode(function(node){
-                        graph.addLink(topNode.id, node.id);
+                    var n = nodes;
+                    var nodeToAdd = n.filter(function(nodeListed){return nodeListed.id == edges[i].to;})[0];
+    
+                    (graph.getNode(nodeToAdd.id) == undefined) ? graph.addNode(nodeToAdd.id, nodeToAdd.label): console.log(nodeToAdd,' already exists;');
+                    
+                    graph.removeLink(topNode.id, nodeToAdd.id);
+                    graph.addLink(topNode.id, nodeToAdd.id);
+                    
+                    graph.forEachLinkedNode(topNode.id, function(linkedNode, link){
+                        graph.forEachNode(function(eachNode){
+                            if (edges.some(function(edge){return ((edge.from == linkedNode) && (edge.to == eachNode));})){
+                                graph.removeLink(linkedNode.id, eachNode.id);
+                                graph.addLink(linkedNode.id, eachNode.id);
+                            }
+                        });    
                     });
                }
             }
@@ -100,7 +112,10 @@ function graphDrawer(data){
 
     graphics.link(function(link){
                 return Viva.Graph.svg('path')
-                              .attr('stroke', 'gray');
+                              .attr('stroke', 'gray')
+                              .attr('stroke-opacity', '1')
+                              .attr('stroke-width', '0.5');
+
     }).placeLink(function(linkUI, fromPos, toPos) {
                 var data = 'M' + fromPos.x + ',' + fromPos.y +
                            'L' + toPos.x + ',' + toPos.y;
@@ -109,10 +124,10 @@ function graphDrawer(data){
     });
     //------ LAYOUT --------------------------------------------------------------
     var layout = Viva.Graph.Layout.forceDirected(graph, {
-        springLength : 10,
-        springCoeff : 0.00018,
-        dragCoeff : 0.009,
-        gravity : -8.2
+        springLength : 15,
+        springCoeff : 0.00005,
+        dragCoeff : 0.03,
+        gravity : -10.2
     });
 
     var renderer = Viva.Graph.View.renderer(graph, {

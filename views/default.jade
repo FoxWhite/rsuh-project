@@ -24,6 +24,7 @@ html
                 });
 
                 $('.graphButton').on('click', function(){
-                        $.get('/graph', function(data){ graphDrawer(data)});
+                        var startNodeUrl = 'http://belov.hol.es/'; //'http://sport.rggu.ru/';
+                        $.get('/graph', function(data){ graphDrawer(data, startNodeUrl)});
                 });
             });
